@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { auth, googleProvider } from "./firebase";
+import { auth, googleProvider, saveWeightEntry, getWeightEntries } from "./firebase";
 import { signInWithPopup, signOut } from "firebase/auth";
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'

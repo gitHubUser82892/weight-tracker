@@ -23,4 +23,4 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
-src/firebase.js
+.env
