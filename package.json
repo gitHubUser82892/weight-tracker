@@ -13,8 +13,10 @@
     "@tailwindcss/cli": "^4.0.4",
     "@tailwindcss/postcss": "^4.0.4",
     "@vercel/analytics": "^1.4.1",
+    "date-fns": "^4.1.0",
     "firebase": "^11.3.0",
     "graphql": "^16.10.0",
+    "papaparse": "^5.5.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "vercel": "^41.0.2"

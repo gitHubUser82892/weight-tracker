@@ -26,31 +26,30 @@ export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 
 // Firestore Helper Functions
-export const saveWeightEntry = async (userId, weight) => {
+export const saveWeightEntry = async (userId, weight, date = new Date()) => {
   try {
     const userRef = collection(db, "users", userId, "weightEntries");
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set time to midnight to compare only the date
+    date.setHours(0, 0, 0, 0); // Set time to midnight to compare only the date
 
-    const q = query(userRef, where("date", "==", Timestamp.fromDate(today)));
+    const q = query(userRef, where("date", "==", Timestamp.fromDate(date)));
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
       // Update existing entry
       const entryDoc = querySnapshot.docs[0];
       await setDoc(doc(userRef, entryDoc.id), {
-        date: Timestamp.fromDate(today),
+        date: Timestamp.fromDate(date),
         weight: parseFloat(weight.toFixed(1)), // Ensure 1 decimal place
       });
     } else {
       // Add new entry
       await addDoc(userRef, {
-        date: Timestamp.fromDate(today),
+        date: Timestamp.fromDate(date),
         weight: parseFloat(weight.toFixed(1)), // Ensure 1 decimal place
       });
     }
   } catch (error) {
-    console.error("Error saving weight entry:", error);
+    console.error("Error saving weight entry:", error, { userId, weight, date });
   }
 };
 
