@@ -1,21 +1,105 @@
 import React, { useState, useEffect } from "react";
+import styled from "styled-components";
 import { auth, googleProvider, saveWeightEntry, getWeightEntries } from "./firebase";
 import { signInWithPopup, signOut } from "firebase/auth";
 import Papa from "papaparse";
-import { parse, subMonths, subWeeks, subYears } from "date-fns";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import './App.css';
+import { parse, format, subMonths, subWeeks, subYears } from "date-fns";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Analytics } from '@vercel/analytics/react';
 
 const timeframes = {
-  "All data": null,
-  "2 years": subYears(new Date(), 2),
-  "1 year": subYears(new Date(), 1),
-  "6 months": subMonths(new Date(), 6),
-  "3 months": subMonths(new Date(), 3),
-  "1 month": subMonths(new Date(), 1),
   "1 week": subWeeks(new Date(), 1),
+  "1 month": subMonths(new Date(), 1),
+  "3 months": subMonths(new Date(), 3),
+  "6 months": subMonths(new Date(), 6),
+  "1 year": subYears(new Date(), 1),
+  "2 years": subYears(new Date(), 2),
+  "All data": null,
 };
+
+const Container = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0rem;
+  margin: 0rem;
+  min-height: 100vh;
+  background-color: #f7fafc;
+`;
+
+const Card = styled.div`
+  padding: 1rem;
+  width: 100%;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+`;
+
+const Title = styled.div`
+  font-size: 2rem;
+  font-weight: bold;
+  color: #2d3748;
+  margin-bottom: 0.25rem;
+`;
+
+const Button = styled.button`
+  margin: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color:rgb(101, 215, 243);
+  color: white;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+`;
+
+const Input = styled.input`
+  border: 1px solid #e2e8f0;
+  margin: 0.7rem;
+  padding: 1.0rem;
+  border-radius: 0.25rem;
+  width: 50%;
+  font-size: 1.25rem;
+`;
+
+const TimeframeSelect = styled.select`
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  width: 30%;
+  font-size: 0.875rem;
+`;
+
+const Group = styled.div`
+  margin: 1rem 0;
+`;
+
+const InfoRow = styled.div`
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+`;
+
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+`;
+
+const TableHeader = styled.th`
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem;
+  text-align: left;
+  font-size: 0.875rem;
+  background-color: #f7fafc;
+`;
+
+const TableCell = styled.td`
+  border: 1px solid #e2e8f0;
+  padding: 0.2rem;
+  text-align: left;
+  font-size: 0.875rem;
+`;
 
 function App() {
   const [user, setUser] = useState(null);
@@ -107,112 +191,162 @@ function App() {
     return [min - 1, max + 1];
   };
 
-  const filteredData1 = filterDataByTimeframe(weightHistory, timeframes[timeframe1]).sort((a, b) => new Date(b.date.seconds * 1000) - new Date(a.date.seconds * 1000));
-  const filteredData2 = filterDataByTimeframe(weightHistory, timeframes[timeframe2]).sort((a, b) => new Date(b.date.seconds * 1000) - new Date(a.date.seconds * 1000));
+  const calculateChange = (data) => {
+    if (data.length < 2) return { start: 0, current: 0, change: 0, changePercentage: 0 };
+    const start = data[0].weight;
+    const current = data[data.length - 1].weight;
+    const change = current - start;
+    const changePercentage = ((current - start) / start) * 100;
+    return { start, current, change, changePercentage };
+  };
+
+  const filteredData1 = filterDataByTimeframe(weightHistory, timeframes[timeframe1]).sort((a, b) => new Date(a.date.seconds * 1000) - new Date(b.date.seconds * 1000));
+  const filteredData2 = filterDataByTimeframe(weightHistory, timeframes[timeframe2]).sort((a, b) => new Date(a.date.seconds * 1000) - new Date(b.date.seconds * 1000));
+
+  const change1 = calculateChange(filteredData1);
+  const change2 = calculateChange(filteredData2);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <Container>
       <Analytics />
-      <div className="p-6 w-full max-w-sm bg-white rounded-lg shadow-md text-center">
-        <h1 className="text-2xl font-bold text-gray-800">Weight Tracker</h1>
-        <p className="text-gray-600">Track your daily weight easily.</p>
+      <Card>
+        <Title>Weight Tracker</Title>
 
         {user ? (
           <div>
-            <p>Welcome, {user.displayName}!</p>
-            <button onClick={logout} className="mt-4 px-4 py-2 bg-red-500 text-white rounded">
-              Logout
-            </button>
+            <div className="flex justify-between items-center gap-4">
+              <div className="text-sm">Welcome, {user.displayName}!</div>
+              <Button onClick={logout}>Logout</Button>
+            </div>
 
             <div className="mt-4">
-              <input
+              <Input
                 type="number"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
                 placeholder="Enter weight (lbs)"
-                className="border p-2 rounded w-full"
               />
-              <button onClick={handleSaveWeight} className="mt-2 w-full px-4 py-2 bg-blue-500 text-white rounded">
+              <Button onClick={handleSaveWeight} className="mt-2 w-full">
                 Save
-              </button>
+              </Button>
             </div>
 
             {/* Line Charts */}
-            <div className="mt-4">
-              <h2 className="text-lg font-semibold">Weight Progress</h2>
-              <div className="mt-4">
-                <label htmlFor="timeframe1">Select Timeframe:</label>
-                <select id="timeframe1" value={timeframe1} onChange={(e) => setTimeframe1(e.target.value)} className="border p-2 rounded w-full">
-                  {Object.keys(timeframes).map((key) => (
-                    <option key={key} value={key}>{key}</option>
-                  ))}
-                </select>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={filteredData1}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey={(entry) => new Date(entry.date.seconds * 1000).toLocaleDateString()} reversed />
-                    <YAxis domain={getYAxisDomain(filteredData1)} />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="weight" stroke="#8884d8" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+            <Group>
+              <label htmlFor="timeframe1" className="text-sm">Timeframe: </label>
+              <TimeframeSelect id="timeframe1" value={timeframe1} onChange={(e) => setTimeframe1(e.target.value)}>
+                {Object.keys(timeframes).reverse().map((key) => (
+                  <option key={key} value={key}>{key}</option>
+                ))}
+              </TimeframeSelect>
+              <InfoRow>
+                <span>Starting: {change1.start}</span>
+                <span>Current: {change1.current}</span>
+                <span style={{ color: change1.change < 0 ? 'green' : 'red' }}>
+                  Change: {change1.change.toFixed(1)} ({change1.changePercentage.toFixed(1)}%)
+                </span>
+              </InfoRow>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={filteredData1} margin={{ left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date.seconds"
+                    scale="time"
+                    type="number"
+                    domain={['dataMin', 'dataMax']}
+                    tickFormatter={(tick) => format(new Date(tick * 1000), "MMM dd yyyy")}
+                    tick={{ fontSize: 10 }}
+                  />
+                  <YAxis domain={getYAxisDomain(filteredData1)} tick={{ fontSize: 10 }} />
+                  <Tooltip labelFormatter={(label) => format(new Date(label * 1000), "MMM dd yyyy")} />
+                  <Line type="monotone" dataKey="weight" stroke="#8884d8" />
+                </LineChart>
+              </ResponsiveContainer>
+            </Group>
 
-              <div className="mt-4">
-                <label htmlFor="timeframe2">Select Timeframe:</label>
-                <select id="timeframe2" value={timeframe2} onChange={(e) => setTimeframe2(e.target.value)} className="border p-2 rounded w-full">
-                  {Object.keys(timeframes).map((key) => (
-                    <option key={key} value={key}>{key}</option>
-                  ))}
-                </select>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={filteredData2}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey={(entry) => new Date(entry.date.seconds * 1000).toLocaleDateString()} reversed />
-                    <YAxis domain={getYAxisDomain(filteredData2)} />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="weight" stroke="#82ca9d" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+            <Group>
+              <label htmlFor="timeframe2" className="text-sm">Timeframe: </label>
+              <TimeframeSelect id="timeframe2" value={timeframe2} onChange={(e) => setTimeframe2(e.target.value)}>
+                {Object.keys(timeframes).reverse().map((key) => (
+                  <option key={key} value={key}>{key}</option>
+                ))}
+              </TimeframeSelect>
+              <InfoRow>
+                <span>Starting: {change2.start}</span>
+                <span>Current: {change2.current}</span>
+                <span style={{ color: change2.change < 0 ? 'green' : 'red' }}>
+                  Change: {change2.change.toFixed(1)} ({change2.changePercentage.toFixed(1)}%)
+                </span>
+              </InfoRow>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={filteredData2} margin={{ left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date.seconds"
+                    scale="time"
+                    type="number"
+                    domain={['dataMin', 'dataMax']}
+                    tickFormatter={(tick) => format(new Date(tick * 1000), "MMM dd yyyy")}
+                    tick={{ fontSize: 10 }}
+                  />
+                  <YAxis domain={getYAxisDomain(filteredData2)} tick={{ fontSize: 10 }} />
+                  <Tooltip labelFormatter={(label) => format(new Date(label * 1000), "MMM dd yyyy")} />
+                  <Line type="monotone" dataKey="weight" stroke="#82ca9d" />
+                </LineChart>
+              </ResponsiveContainer>
+            </Group>
 
-            {/* Import CSV */}
             <div className="mt-4">
-              <input type="file" accept=".csv" onChange={handleFileUpload} className="border p-2 rounded w-full" />
-              {importStatus && <p className="mt-2 text-red-500">{importStatus}</p>} {/* Display import status */}
+              <Button onClick={() => setShowWeightHistory(!showWeightHistory)} className="mt-4 w-full bg-green-500">
+                {showWeightHistory ? "Hide Weight History" : "Show Weight History"}
+              </Button>
             </div>
-
-              <div className="mt-4">
-                <button onClick={() => setShowWeightHistory(!showWeightHistory)} className="mt-4 w-full px-4 py-2 bg-green-500 text-white rounded">
-                  {showWeightHistory ? "Hide Weight History" : "Show Weight History"}
-                </button>
-              </div>
 
               {showWeightHistory && (
                 <div className="mt-4">
                   <h2 className="text-lg font-semibold">Weight History</h2>
-                  <ul className="text-left">
-                    {weightHistory
-                      .sort((a, b) => b.date.seconds - a.date.seconds) // Sort by date in descending order
-                      .map((entry) => (
-                        <li key={entry.id} className="mt-2">
-                          📅 {new Date(entry.date.seconds * 1000).toLocaleDateString()} - ⚖️ {entry.weight} lbs
-                        </li>
-                      ))}
-                  </ul>
+
+                  {/* Import CSV */}
+                  <div className="mt-4">
+                    <label className="border p-2 rounded w-full bg-blue-500 text-white cursor-pointer">
+                      Choose file for import
+                      <input type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
+                    </label>
+                    {importStatus && <p className="mt-2 text-red-500">{importStatus}</p>} {/* Display import status */}
+                  </div>
+
+                  <Table>
+                    <thead>
+                      <tr>
+                        <TableHeader>Date</TableHeader>
+                        <TableHeader>Weight (lbs)</TableHeader>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {weightHistory
+                        .sort((a, b) => b.date.seconds - a.date.seconds) // Sort by date in descending order
+                        .map((entry) => (
+                          <tr key={entry.id}>
+                            <TableCell>{format(new Date(entry.date.seconds * 1000), "MMM dd yyyy")}</TableCell>
+                            <TableCell>{entry.weight}</TableCell>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </Table>
                 </div>
               )}
-            </div>
+
           </div>
         ) : (
-          <button onClick={login} className="mt-4 w-full px-4 py-2 bg-blue-500 text-white rounded">
-            Login with Google
-          </button>
+          <>
+            <p className="text-gray-600">Track your daily weight easily.</p>
+            <Button onClick={login} className="mt-4 w-full bg-blue-500">
+              Login with Google
+            </Button>
+          </>
         )}
-      </div>
-    </div>
+      </Card>
+    </Container>
   );
 }
 
