@@ -24,12 +24,15 @@ const Container = styled.div`
   padding: 0rem;
   margin: 0rem;
   min-height: 100vh;
+  min-width: 100vw;
   background-color: #f7fafc;
+  width: 100%;
 `;
 
 const Card = styled.div`
   padding: 1rem;
   width: 100%;
+  max-width: 600px;
   background-color: white;
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -222,6 +225,7 @@ function App() {
             <div className="mt-4">
               <Input
                 type="number"
+                inputMode="numeric"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
                 placeholder="Enter weight (lbs)"
@@ -247,7 +251,7 @@ function App() {
                 </span>
               </InfoRow>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={filteredData1} margin={{ left: 0 }}>
+                <LineChart data={filteredData1} margin={{ left: -25 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
                     dataKey="date.seconds"
@@ -279,7 +283,7 @@ function App() {
                 </span>
               </InfoRow>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={filteredData2} margin={{ left: 0 }}>
+                <LineChart data={filteredData2} margin={{ left: -25 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
                     dataKey="date.seconds"
