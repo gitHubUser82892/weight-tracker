@@ -53,7 +53,7 @@ const Button = styled.button`
   color: white;
   border-radius: 0.25rem;
   font-size: 0.875rem;
-`;
+  `;
 
 const Input = styled.input`
   border: 1px solid #e2e8f0;
@@ -225,7 +225,8 @@ function App() {
             <div className="mt-4">
               <Input
                 type="number"
-                inputMode="numeric"
+                inputMode="decimal"
+                step="0.1"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
                 placeholder="Enter weight (lbs)"
