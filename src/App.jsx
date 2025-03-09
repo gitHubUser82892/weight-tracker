@@ -26,6 +26,7 @@ const Container = styled.div`
   min-height: 100vh;
   min-width: 100vw;
   background-color: #f7fafc;
+  color: #2d3748;
   width: 100%;
 `;
 
@@ -34,6 +35,7 @@ const Card = styled.div`
   width: 100%;
   max-width: 600px;
   background-color: white;
+  color: #2d3748;
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   text-align: center;
@@ -62,6 +64,8 @@ const Input = styled.input`
   border-radius: 0.25rem;
   width: 50%;
   font-size: 1.25rem;
+  background-color: white;
+  color: black;
 `;
 
 const TimeframeSelect = styled.select`
@@ -70,6 +74,8 @@ const TimeframeSelect = styled.select`
   border-radius: 0.25rem;
   width: 30%;
   font-size: 0.875rem;
+  background-color: white;
+  color: black;
 `;
 
 const Group = styled.div`
@@ -81,12 +87,15 @@ const InfoRow = styled.div`
   margin-bottom: 0.5rem;
   display: flex;
   justify-content: space-between;
+  color: #2d3748;
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
+  background-color: white;
+  color: #2d3748;
 `;
 
 const TableHeader = styled.th`
@@ -95,6 +104,7 @@ const TableHeader = styled.th`
   text-align: left;
   font-size: 0.875rem;
   background-color: #f7fafc;
+  color: #2d3748;
 `;
 
 const TableCell = styled.td`
@@ -102,6 +112,8 @@ const TableCell = styled.td`
   padding: 0.2rem;
   text-align: left;
   font-size: 0.875rem;
+  background-color: white;
+  color: #2d3748;
 `;
 
 function App() {
@@ -110,7 +122,7 @@ function App() {
   const [weightHistory, setWeightHistory] = useState([]);
   const [importStatus, setImportStatus] = useState(""); // State variable for import status
   const [timeframe1, setTimeframe1] = useState("1 month");
-  const [timeframe2, setTimeframe2] = useState("2 years");
+  const [timeframe2, setTimeframe2] = useState("6 months");
   const [showWeightHistory, setShowWeightHistory] = useState(false); // State variable for showing weight history
 
   // Fetch weight data when user logs in
